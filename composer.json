@@ -1,0 +1,39 @@
+{
+    "name": "sodeker/laravel-pdf",
+    "description": "Módulo compartido de generación de PDFs desde vistas blade para aplicaciones Laravel de Sódeker.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.0",
+        "spatie/browsershot": "^5.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.13",
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sodeker\\Pdf\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sodeker\\Pdf\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Sodeker\\Pdf\\PdfServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    }
+}

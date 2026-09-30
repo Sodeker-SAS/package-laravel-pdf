@@ -1,0 +1,1 @@
+<div>Encabezado: {{ $title }}</div>

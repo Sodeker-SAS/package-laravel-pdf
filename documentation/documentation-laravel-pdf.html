@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paquete laravel-pdf — Documentación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./sodeker.css">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('sodeker-docs-theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = stored || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    /* Alias para que los widgets usen la paleta Sódeker y no sus valores de respaldo */
+    :root {
+      --ink-50: var(--paper-tint);
+      --accent-soft: var(--accent-50);
+      --accent-dark: var(--accent-700);
+    }
+
+    .pill {
+      display: inline-block;
+      background: var(--ink-050);
+      border: 1px solid var(--ink-100);
+      color: var(--ink-600);
+      font-family: var(--font-mono);
+      font-size: var(--fs-micro);
+      padding: 2px 8px;
+      border-radius: var(--r-sm);
+    }
+    .pill--accent { background: var(--accent-50); color: var(--accent-700); border-color: var(--accent-100); font-weight: 600; }
+    .pill--warn { background: var(--warning-50); color: var(--warning-600); border-color: var(--warning-200); font-weight: 600; }
+    .pill-list { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
+
+    /* sodeker.css recorta las tablas (overflow: hidden): aquí se desplazan en horizontal.
+       Las claves y rutas en <code> no se parten, así que la tabla crece y aparece el scroll. */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.doc-table code { white-space: nowrap; }
+    table.doc-table td:last-child { min-width: 220px; }
+
+    /* Terminal estilo macOS */
+    .terminal { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--ink-200); box-shadow: var(--shadow-sm); background: #0F172A; margin: var(--space-3) 0; }
+    .terminal__bar { background: #1E293B; padding: var(--space-3) var(--space-4); display: flex; align-items: center; gap: var(--space-2); }
+    .terminal__dots { display: flex; gap: 5px; }
+    .terminal__dots span { width: 11px; height: 11px; border-radius: 50%; background: #64748B; }
+    .terminal__title { font-size: var(--fs-micro); font-weight: 600; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; text-transform: uppercase; margin-left: var(--space-2); font-family: var(--font-mono); }
+    .terminal__body { padding: var(--space-4) var(--space-5); font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.75; color: #E2E8F0; overflow-x: auto; white-space: pre; }
+    .terminal__body .t-cmt    { color: #64748B; font-style: italic; }
+    .terminal__body .t-prompt { color: #7DD3FC; font-weight: 600; }
+    .terminal__body .t-cmd    { color: #E2E8F0; }
+    .terminal__body .t-arg    { color: #FCD34D; }
+    .terminal__body .t-flag   { color: #C4B5FD; }
+    .terminal__body .t-ok     { color: #86EFAC; font-style: italic; }
+
+    /* Comandos numerados */
+    .cmd-stack { display: grid; gap: var(--space-4); margin: var(--space-5) 0; }
+    .cmd-item { border: var(--border); border-radius: var(--r-md); overflow: hidden; background: var(--paper); box-shadow: var(--shadow-xs); }
+    .cmd-item__head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-5); background: var(--paper-tint); border-bottom: 1px solid var(--ink-100); }
+    .cmd-item__num { width: 24px; height: 24px; border-radius: var(--r-pill); background: var(--accent); color: var(--paper); font-size: var(--fs-micro); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); }
+    .cmd-item__title { font-size: var(--fs-small); font-weight: 600; color: var(--ink-900); }
+    .cmd-item__code { background: #0F172A; color: #E2E8F0; padding: var(--space-3) var(--space-5); font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; overflow-x: auto; white-space: pre; }
+    .cmd-item__code .t-arg  { color: #FCD34D; }
+    .cmd-item__code .t-flag { color: #C4B5FD; }
+    .cmd-item__foot { padding: var(--space-3) var(--space-5); font-size: var(--fs-small); color: var(--ink-600); border-top: 1px solid var(--ink-100); background: var(--paper-tint); }
+    .cmd-item__foot strong { color: var(--ink-900); }
+
+    /* Bloque de código oscuro (PHP / Blade) */
+    .sql-box { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--ink-200); background: #0F172A; margin: var(--space-4) 0; box-shadow: var(--shadow-xs); }
+    .sql-box__bar { background: #1E293B; padding: var(--space-2) var(--space-5); font-size: var(--fs-micro); font-weight: 600; color: rgba(255,255,255,0.55); letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--font-mono); }
+    .sql-box__body { padding: var(--space-4) var(--space-5); font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.75; color: #E2E8F0; white-space: pre; overflow-x: auto; }
+    .sql-box .kw  { color: #C4B5FD; font-weight: 700; }
+    .sql-box .tbl { color: #7DD3FC; }
+    .sql-box .val { color: #86EFAC; }
+    .sql-box .cm  { color: #64748B; font-style: italic; }
+
+    .code-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .code-pair .sql-box { margin: 0; }
+    @media (max-width: 900px) { .code-pair { grid-template-columns: 1fr; } }
+
+    .tree { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.7; }
+    .tree .cm { color: var(--ink-300); font-style: italic; }
+
+    /* Qué pasó / por qué / qué hacer */
+    .issue { border: var(--border); border-radius: var(--r-md); overflow: hidden; margin: var(--space-4) 0; background: var(--paper); }
+    .issue__head { padding: var(--space-3) var(--space-5); background: var(--paper-tint); border-bottom: 1px solid var(--ink-100); font-weight: 600; font-size: var(--fs-small); color: var(--ink-900); }
+    .issue__row { display: grid; grid-template-columns: 120px 1fr; gap: var(--space-4); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--ink-050); font-size: var(--fs-small); }
+    .issue__row:last-child { border-bottom: none; }
+    .issue__label { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-700); padding-top: 2px; }
+    @media (max-width: 640px) { .issue__row { grid-template-columns: 1fr; gap: var(--space-1); } }
+
+    [data-theme="dark"] .pattern-01 .fl-node__circle { background: var(--paper-soft); }
+    [data-theme="dark"] .pattern-01 .fl-detail { background: var(--paper-soft); }
+    [data-theme="dark"] .figure svg rect[fill="#FFFBEB"] { fill: rgba(180, 83, 9, 0.18); }
+  </style>
+</head>
+<body class="with-grid">
+
+  <button class="theme-toggle" type="button" aria-label="Cambiar tema (claro / oscuro)" title="Cambiar tema">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+  </button>
+
+  <div class="doc-layout">
+    <main class="doc-content">
+
+      <!-- =================== HERO =================== -->
+      <header class="section" style="border-bottom: none; padding-top: var(--space-8);">
+        <span class="badge">Documentación técnica · sodeker/laravel-pdf</span>
+        <h1 class="display" style="margin-top: var(--space-4);">
+          Paquete de generación de <span class="accent">PDF</span>
+        </h1>
+        <p class="lede">
+          <code>sodeker/laravel-pdf</code> convierte vistas Blade de la aplicación en archivos PDF usando Browsershot y Chromium.
+          Se instala con Composer en cualquier aplicación Laravel 12 de Sódeker. No trae diseños propios: cada aplicación pone su maqueta, su encabezado y su pie.
+        </p>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric__value">1</div>
+            <div class="metric__label">Método público: <code>generate()</code></div>
+          </div>
+          <div class="metric">
+            <div class="metric__value">0</div>
+            <div class="metric__label">Vistas o rutas propias del paquete</div>
+          </div>
+          <div class="metric">
+            <div class="metric__value">15</div>
+            <div class="metric__label">Pruebas (42 aserciones) en verde</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- =================== 2. ARQUITECTURA =================== -->
+      <section id="arquitectura" class="section">
+        <header class="section__header">
+          <span class="badge">Documentación técnica</span>
+          <h2>Cómo está <span class="accent">construido</span></h2>
+          <p class="lede">Un contrato compartido, un servicio que renderiza Blade y un puerto intercambiable que convierte HTML en PDF.</p>
+        </header>
+
+        <figure class="figure">
+          <svg viewBox="0 0 720 350" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" role="img" aria-label="Arquitectura del módulo de generación de PDF">
+            <defs>
+              <marker id="arch-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+              </marker>
+            </defs>
+            <g font-family="Inter, sans-serif" fill="#1F2937">
+              <rect x="20" y="145" width="150" height="64" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="95" y="172" text-anchor="middle" font-size="13" font-weight="600">Módulo consumidor</text>
+              <text x="95" y="191" text-anchor="middle" font-size="11">ej. Studies</text>
+
+              <rect x="200" y="145" width="150" height="64" rx="12" fill="#E6F4F6" stroke="#0097A7"/>
+              <text x="275" y="172" text-anchor="middle" font-size="13" font-weight="600">GeneratePdfContract</text>
+              <text x="275" y="191" text-anchor="middle" font-size="11">generate()</text>
+
+              <rect x="380" y="145" width="150" height="64" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="455" y="172" text-anchor="middle" font-size="13" font-weight="600">GeneratePdfFrom</text>
+              <text x="455" y="191" text-anchor="middle" font-size="13" font-weight="600">ViewService</text>
+
+              <rect x="560" y="30" width="145" height="64" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="632" y="57" text-anchor="middle" font-size="13" font-weight="600">Vistas de la app</text>
+              <text x="632" y="76" text-anchor="middle" font-size="11">vía TemplateRenderer</text>
+
+              <rect x="560" y="145" width="145" height="64" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="632" y="172" text-anchor="middle" font-size="13" font-weight="600">HtmlToPdfRenderer</text>
+              <text x="632" y="191" text-anchor="middle" font-size="11">puerto</text>
+
+              <rect x="560" y="262" width="145" height="64" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="632" y="289" text-anchor="middle" font-size="13" font-weight="600">Browsershot</text>
+              <text x="632" y="308" text-anchor="middle" font-size="11">puppeteer + Chromium</text>
+
+              <rect x="200" y="262" width="150" height="64" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="275" y="289" text-anchor="middle" font-size="13" font-weight="600">GeneratedPdfDTO</text>
+              <text x="275" y="308" text-anchor="middle" font-size="11">content · fileName</text>
+            </g>
+            <g stroke="#9CA3AF" stroke-width="1.5" fill="none" marker-end="url(#arch-arrow)">
+              <path d="M170,177 L198,177"/>
+              <path d="M350,177 L378,177"/>
+              <path d="M530,165 C548,150 545,70 558,64"/>
+              <path d="M530,177 L558,177"/>
+              <path d="M632,209 L632,260"/>
+              <path d="M560,294 C470,294 430,294 352,294"/>
+              <path d="M200,294 C120,294 95,260 95,211"/>
+            </g>
+          </svg>
+          <figcaption class="figure__caption">
+            <span class="figure__label">DIAGRAMA 1</span>
+            El consumidor llama al contrato. El servicio renderiza las vistas de la aplicación, el puerto las convierte con Chromium y el resultado vuelve como <code>GeneratedPdfDTO</code>.
+          </figcaption>
+        </figure>
+
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Componente</th><th>Responsabilidad</th><th>Ubicación</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>GeneratePdfContract</code></td><td>Frontera pública. Es lo único que importan los demás módulos.</td><td><code>src/Contracts</code></td></tr>
+              <tr><td><code>GeneratePdfFromViewService</code></td><td>Caso de uso: valida todas las vistas, las renderiza con la misma data y llama al puerto de conversión. No depende de Laravel.</td><td><code>src/Application/Services</code></td></tr>
+              <tr><td><code>TemplateRenderer</code></td><td>Puerto de salida: convierte una plantilla y su data en HTML.</td><td><code>src/Application/Ports</code></td></tr>
+              <tr><td><code>BladeTemplateRenderer</code></td><td>Implementación con Blade (<code>ViewFactory</code> de Laravel).</td><td><code>src/Infrastructure/Templates</code></td></tr>
+              <tr><td><code>HtmlToPdfRenderer</code></td><td>Puerto de salida: recibe HTML ya renderizado y devuelve el binario del PDF.</td><td><code>src/Application/Ports</code></td></tr>
+              <tr><td><code>BrowsershotHtmlToPdfRenderer</code></td><td>Implementación con Browsershot. Traduce las opciones de página a Chromium y le indica dónde guardar su perfil (<code>pdf.temporary_directory</code>).</td><td><code>src/Infrastructure/Renderers</code></td></tr>
+              <tr><td><code>PdfServiceProvider</code></td><td>Registra el contrato y el renderer, y publica <code>config/pdf.php</code>. Laravel lo descubre solo.</td><td><code>src/</code></td></tr>
+              <tr><td><code>PdfPageOptionsDTO</code></td><td>Formato, orientación, márgenes en mm y timeout.</td><td><code>src/Application/DTOs</code></td></tr>
+              <tr><td><code>GeneratedPdfDTO</code></td><td>Resultado: contenido binario, nombre del archivo, tamaño y base64.</td><td><code>src/Application/DTOs</code></td></tr>
+              <tr><td>Excepciones</td><td><code>PdfTemplateNotFoundException</code> y <code>PdfRenderingFailedException</code>, ambas hijas de <code>PdfGenerationException</code>. Son fallos del caso de uso, no reglas de negocio.</td><td><code>src/Application/Exceptions</code></td></tr>
+              <tr><td><code>PageFormat</code> / <code>PageOrientation</code></td><td>Enums: <code>Letter</code>, <code>Legal</code>, <code>A4</code> y vertical/horizontal.</td><td><code>src/Domain/ValueObjects</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Estructura de archivos</h3>
+<pre class="tree">sodeker-laravel-pdf/
+├── composer.json                            <span class="cm">sodeker/laravel-pdf · autoload Sodeker\Pdf\ · auto-discovery</span>
+├── config/pdf.php                           <span class="cm">rutas de Node, Chromium, node_modules y temporal</span>
+├── src/
+│   ├── PdfServiceProvider.php               <span class="cm">registra contrato y renderer, publica la config</span>
+│   ├── Contracts/GeneratePdfContract.php    <span class="cm">frontera pública</span>
+│   ├── Application/
+│   │   ├── DTOs/{GeneratedPdfDTO, PdfPageOptionsDTO}.php
+│   │   ├── Exceptions/{PdfGenerationException, PdfRenderingFailedException, PdfTemplateNotFoundException}.php
+│   │   ├── Ports/{HtmlToPdfRenderer, TemplateRenderer}.php   <span class="cm">puertos de salida</span>
+│   │   └── Services/GeneratePdfFromViewService.php
+│   ├── Domain/ValueObjects/{PageFormat, PageOrientation}.php
+│   └── Infrastructure/
+│       ├── Renderers/BrowsershotHtmlToPdfRenderer.php
+│       └── Templates/BladeTemplateRenderer.php
+├── tests/
+│   ├── TestCase.php                         <span class="cm">Orchestra Testbench</span>
+│   ├── Support/{FakeHtmlToPdfRenderer, SpyTemplateRenderer}.php   <span class="cm">dobles de prueba, sin Chromium</span>
+│   └── Unit/PdfGeneration/
+│       ├── ArchitectureTest.php             <span class="cm">reglas de dependencia entre capas</span>
+│       ├── GeneratePdfContractTest.php
+│       └── views/{body, header, footer}.blade.php   <span class="cm">maquetas de juguete solo para pruebas</span>
+├── AGENTS.md · README.md · CHANGELOG.md
+└── documentation/</pre>
+
+        <div class="card-grid">
+          <article class="card card--accent-left">
+            <h3 class="card__title">Puerto y adaptador</h3>
+            <p class="card__body">El servicio depende de dos puertos, <code>TemplateRenderer</code> y <code>HtmlToPdfRenderer</code>, no de Blade ni de Browsershot. Cambiar a otro motor (por ejemplo Gotenberg) es escribir otra clase y registrarla: el provider usa <code>bindIf</code>, así que la aplicación puede poner la suya sin tocar el paquete.</p>
+          </article>
+          <article class="card card--accent-left">
+            <h3 class="card__title">Contrato compartido</h3>
+            <p class="card__body">Los módulos consumidores nunca importan el servicio. Piden <code>GeneratePdfContract</code> al contenedor de Laravel. Lo interno del paquete puede cambiar en una versión menor sin romperlos.</p>
+          </article>
+          <article class="card card--accent-left">
+            <h3 class="card__title">Sin estado</h3>
+            <p class="card__body">El servicio se registra como <em>singleton</em> (una sola instancia por petición) porque no guarda nada entre llamadas.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- =================== 3. FLUJO (widget central) =================== -->
+      <section class="section pattern-01" id="flujo">
+        <header class="section__header">
+          <span class="badge">Flujo interno</span>
+          <h2>Qué pasa al llamar a <span class="accent">generate()</span></h2>
+          <p class="lede">Cinco etapas en orden. Si una vista falta, el proceso se detiene en la segunda y Chromium nunca arranca.</p>
+        </header>
+
+        <p style="font-size: var(--fs-small); color: var(--ink-500);">
+          <span class="interactive-badge" aria-label="Interactivo">↺</span>
+          Usa los botones para avanzar por las etapas.
+        </p>
+
+        <div class="fl-flow">
+          <div class="fl-flow__eyebrow">Flujo interno</div>
+          <div class="fl-nodes" id="fl-nodes"></div>
+          <div class="fl-nav">
+            <button class="btn btn--secondary" id="fl-prev" type="button" disabled>← Anterior</button>
+            <div class="fl-hint">Etapa <strong id="fl-cur">1</strong> de <strong id="fl-total">5</strong></div>
+            <button class="btn btn--primary" id="fl-next" type="button">Siguiente →</button>
+          </div>
+        </div>
+      </section>
+
+      <style>
+        .pattern-01 .fl-flow{padding:18px;background:var(--ink-50,#f8f7f4);border-radius:12px;border:1px solid var(--ink-200,#e4e2d8);}
+        .pattern-01 .fl-flow__eyebrow{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-500,#78716c);margin-bottom:14px;}
+        .pattern-01 .fl-nodes{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:18px;}
+        .pattern-01 .fl-node{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;}
+        .pattern-01 .fl-node__circle{width:60px;height:60px;border-radius:50%;background:#fff;border:2px solid var(--ink-200,#e4e2d8);display:flex;align-items:center;justify-content:center;color:var(--ink-500,#78716c);transition:all .25s;}
+        .pattern-01 .fl-node__circle.is-lit{background:var(--accent-soft,#EEEDFE);border-color:var(--accent,#534AB7);color:var(--accent-dark,#3C3489);}
+        .pattern-01 .fl-node__label{font-size:12px;color:var(--ink-500,#78716c);text-align:center;line-height:1.3;max-width:90px;transition:color .25s;}
+        .pattern-01 .fl-node__label.is-lit{color:var(--ink-700,#292524);font-weight:500;}
+        .pattern-01 .fl-arrow{flex:1;display:flex;align-items:center;height:2px;background:var(--ink-200,#e4e2d8);position:relative;margin-top:-26px;}
+        .pattern-01 .fl-arrow__fill{height:100%;background:var(--accent,#534AB7);width:0;transition:width .35s;}
+        .pattern-01 .fl-nav{display:flex;justify-content:space-between;align-items:center;}
+        .pattern-01 .fl-hint{font-size:13px;color:var(--ink-500,#78716c);}
+        .pattern-01 .fl-detail{margin-top:14px;padding:14px 16px;background:#fff;border-radius:8px;border:1px solid var(--ink-200,#e4e2d8);font-size:13px;line-height:1.6;color:var(--ink-500,#78716c);}
+        .pattern-01 .fl-detail strong{color:var(--ink-700,#292524);}
+      </style>
+
+      <script>
+      (function(){
+        // === DATOS ===
+        const etapas = [
+          { titulo: 'Llamada', descripcion: 'El módulo consumidor invoca <code>generate()</code> con la vista del cuerpo, la data y, si quiere, la vista del encabezado, la del pie, el nombre del archivo y las opciones de página.', icono: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>' },
+          { titulo: 'Validar vistas', descripcion: 'Antes de renderizar cualquiera, las tres vistas se buscan a través del puerto <code>TemplateRenderer</code>. Si alguna no existe se lanza <code>PdfTemplateNotFoundException</code> con su nombre y Chromium no se ejecuta.', icono: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' },
+          { titulo: 'Renderizar Blade', descripcion: 'Las tres vistas se renderizan a HTML con la misma data. El encabezado y el pie son opcionales: si no llegan, quedan en <code>null</code> y Chromium no imprime nada en esa zona.', icono: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>' },
+          { titulo: 'Chromium', descripcion: '<code>BrowsershotHtmlToPdfRenderer</code> abre Chromium sin interfaz vía puppeteer, aplica formato, orientación y márgenes, e imprime. Si falla, registra el error en el log (sin el HTML) y lanza <code>PdfRenderingFailedException</code>.', icono: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><line x1="12" y1="8.5" x2="20" y2="8.5"/><line x1="9" y1="13.8" x2="5" y2="7"/><line x1="15" y1="13.8" x2="11" y2="21"/></svg>' },
+          { titulo: 'Resultado', descripcion: 'Se devuelve un <code>GeneratedPdfDTO</code> con el binario y el nombre del archivo (termina siempre en <code>.pdf</code>). Guardarlo, enviarlo o descargarlo lo decide el consumidor.', icono: '<svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' }
+        ];
+        // === LÓGICA ===
+        const nodes = document.getElementById('fl-nodes');
+        const total = document.getElementById('fl-total');
+        const cur = document.getElementById('fl-cur');
+        const prev = document.getElementById('fl-prev');
+        const next = document.getElementById('fl-next');
+        let i = 0;
+        total.textContent = etapas.length;
+        function build(){
+          let html = '';
+          etapas.forEach((e, idx) => {
+            html += `<div class="fl-node"><div class="fl-node__circle" data-i="${idx}">${e.icono}</div><div class="fl-node__label" data-i="${idx}">${e.titulo}</div></div>`;
+            if (idx < etapas.length - 1) html += `<div class="fl-arrow"><div class="fl-arrow__fill" data-arrow="${idx}"></div></div>`;
+          });
+          nodes.innerHTML = html;
+          const det = document.createElement('div');
+          det.className = 'fl-detail'; det.id = 'fl-detail';
+          nodes.parentNode.insertBefore(det, nodes.nextSibling);
+        }
+        function update(){
+          document.querySelectorAll('.pattern-01 .fl-node__circle').forEach((c, idx) => c.classList.toggle('is-lit', idx <= i));
+          document.querySelectorAll('.pattern-01 .fl-node__label').forEach((l, idx) => l.classList.toggle('is-lit', idx <= i));
+          document.querySelectorAll('.pattern-01 .fl-arrow__fill').forEach((a, idx) => a.style.width = idx < i ? '100%' : '0');
+          cur.textContent = i + 1;
+          prev.disabled = i === 0;
+          next.disabled = i === etapas.length - 1;
+          const det = document.getElementById('fl-detail');
+          det.innerHTML = `<strong>${etapas[i].titulo}.</strong> ${etapas[i].descripcion}`;
+        }
+        prev.onclick = () => { if (i > 0) { i--; update(); } };
+        next.onclick = () => { if (i < etapas.length - 1) { i++; update(); } };
+        build(); update();
+      })();
+      </script>
+
+      <!-- =================== 4. USO =================== -->
+      <section id="uso" class="section">
+        <header class="section__header">
+          <span class="badge">Uso</span>
+          <h2>Cómo pedir un <span class="accent">PDF</span></h2>
+          <p class="lede">Se inyecta el contrato y se llama a <code>generate()</code> con argumentos nombrados. Solo <code>view</code> es obligatorio.</p>
+        </header>
+
+        <div class="sql-box">
+          <div class="sql-box__bar">PHP · módulo consumidor</div>
+<div class="sql-box__body"><span class="kw">use</span> <span class="tbl">Sodeker\Pdf\Contracts\GeneratePdfContract</span>;
+<span class="kw">use</span> <span class="tbl">Sodeker\Pdf\Application\DTOs\GeneratedPdfDTO</span>;
+
+<span class="kw">public function</span> __construct(<span class="kw">private readonly</span> <span class="tbl">GeneratePdfContract</span> $pdfGenerator) {}
+
+$pdf = $this-&gt;pdfGenerator-&gt;generate(
+    view: <span class="val">'pdf.studies.show'</span>,
+    data: $data,
+    header: <span class="val">'pdf.shared.header'</span>,   <span class="cm">// opcional</span>
+    footer: <span class="val">'pdf.shared.footer'</span>,   <span class="cm">// opcional</span>
+    fileName: <span class="val">'resultado-estudio'</span>,  <span class="cm">// opcional, se agrega .pdf</span>
+);
+
+<span class="kw">return</span> response($pdf-&gt;content, <span class="val">200</span>, [
+    <span class="val">'Content-Type'</span> =&gt; <span class="tbl">GeneratedPdfDTO</span>::MIME_TYPE,
+    <span class="val">'Content-Disposition'</span> =&gt; <span class="val">"inline; filename=\"{$pdf-&gt;fileName}\""</span>,
+]);</div>
+        </div>
+
+        <h3>Parámetros de <code>generate()</code></h3>
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead><tr><th>Parámetro</th><th>Tipo</th><th>Por defecto</th><th>Para qué sirve</th></tr></thead>
+            <tbody>
+              <tr><td><code>view</code></td><td><code>string</code></td><td>obligatorio</td><td>Vista Blade del cuerpo del documento.</td></tr>
+              <tr><td><code>data</code></td><td><code>array</code></td><td><code>[]</code></td><td>Variables que reciben el cuerpo, el encabezado y el pie.</td></tr>
+              <tr><td><code>header</code></td><td><code>?string</code></td><td><code>null</code></td><td>Vista que Chromium imprime en el margen superior de cada página.</td></tr>
+              <tr><td><code>footer</code></td><td><code>?string</code></td><td><code>null</code></td><td>Vista que Chromium imprime en el margen inferior de cada página.</td></tr>
+              <tr><td><code>fileName</code></td><td><code>string</code></td><td><code>'documento.pdf'</code></td><td>Nombre del archivo resultante. Si falta la extensión, se agrega.</td></tr>
+              <tr><td><code>options</code></td><td><code>PdfPageOptionsDTO</code></td><td>carta, vertical</td><td>Formato, orientación, márgenes y timeout.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Opciones de página</h3>
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead><tr><th>Propiedad</th><th>Por defecto</th><th>Nota</th></tr></thead>
+            <tbody>
+              <tr><td><code>format</code></td><td><code>PageFormat::Letter</code></td><td>También <code>Legal</code> y <code>A4</code>.</td></tr>
+              <tr><td><code>orientation</code></td><td><code>PageOrientation::Portrait</code></td><td><code>Landscape</code> para horizontal.</td></tr>
+              <tr><td><code>marginTop / Right / Bottom / Left</code></td><td>10 / 10 / 16 / 10 mm</td><td>El encabezado y el pie se dibujan dentro de estos márgenes.</td></tr>
+              <tr><td><code>timeoutSeconds</code></td><td>60</td><td>Tiempo máximo que se espera a Chromium.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Qué puede lanzar</h3>
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead><tr><th>Excepción</th><th>Cuándo</th></tr></thead>
+            <tbody>
+              <tr><td><code>PdfTemplateNotFoundException</code></td><td>La vista del cuerpo, del encabezado o del pie no existe. El mensaje incluye el nombre de la vista.</td></tr>
+              <tr><td><code>PdfRenderingFailedException</code></td><td>Chromium, puppeteer o Browsershot fallaron. Conserva la excepción original como <code>previous</code>.</td></tr>
+              <tr><td><code>PdfGenerationException</code></td><td>Clase padre de las dos anteriores: sirve para capturar cualquier fallo del paquete con un solo <code>catch</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================== 5. ENCABEZADO Y PIE =================== -->
+      <section id="encabezado-pie" class="section">
+        <header class="section__header">
+          <span class="badge">Encabezado y pie</span>
+          <h2>Vistas reutilizables de la <span class="accent">aplicación</span></h2>
+          <p class="lede">El encabezado y el pie viven en la aplicación, por ejemplo en <code>resources/views/pdf/shared/</code>, y cualquier PDF de esa aplicación los puede reutilizar.</p>
+        </header>
+
+        <figure class="figure">
+          <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" role="img" aria-label="Zonas de una página: encabezado, cuerpo y pie">
+            <defs>
+              <marker id="page-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+              </marker>
+            </defs>
+            <g font-family="Inter, sans-serif" fill="#1F2937">
+              <rect x="230" y="15" width="260" height="290" rx="6" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <rect x="230" y="15" width="260" height="42" rx="6" fill="#E6F4F6" stroke="#C8E9EC"/>
+              <text x="360" y="41" text-anchor="middle" font-size="12" font-weight="600">header</text>
+
+              <rect x="252" y="72" width="216" height="168" rx="6" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="360" y="150" text-anchor="middle" font-size="13" font-weight="600">view (cuerpo)</text>
+              <text x="360" y="170" text-anchor="middle" font-size="11">fluye y salta de página</text>
+
+              <rect x="230" y="255" width="260" height="50" rx="6" fill="#E6F4F6" stroke="#C8E9EC"/>
+              <text x="360" y="284" text-anchor="middle" font-size="12" font-weight="600">footer · Página 1 de 2</text>
+
+              <text x="530" y="40" font-size="12" font-weight="600">marginTop</text>
+              <text x="530" y="56" font-size="11">reserva el alto del header</text>
+              <text x="530" y="278" font-size="12" font-weight="600">marginBottom</text>
+              <text x="530" y="294" font-size="11">reserva el alto del footer</text>
+
+              <text x="20" y="40" font-size="12" font-weight="600">Documento aislado</text>
+              <text x="20" y="56" font-size="11">estilos en línea, imágenes data URI</text>
+              <text x="20" y="278" font-size="12" font-weight="600">Paginación</text>
+              <text x="20" y="294" font-size="11">clases pageNumber y totalPages</text>
+            </g>
+            <g stroke="#9CA3AF" stroke-width="1.5" fill="none" marker-end="url(#page-arrow)">
+              <path d="M525,36 L494,36"/>
+              <path d="M525,280 L494,280"/>
+              <path d="M205,36 L228,36"/>
+              <path d="M205,280 L228,280"/>
+            </g>
+          </svg>
+          <figcaption class="figure__caption">
+            <span class="figure__label">DIAGRAMA 2</span>
+            Chromium imprime el encabezado y el pie dentro de los márgenes. Si el margen es menor que su alto, se recortan o tapan el cuerpo.
+          </figcaption>
+        </figure>
+
+        <div class="card-grid">
+          <article class="card">
+            <h3 class="card__title">Estilos en línea</h3>
+            <p class="card__body">Chromium renderiza el encabezado y el pie en un documento aparte: no ven el CSS del cuerpo ni cargan hojas externas.</p>
+          </article>
+          <article class="card">
+            <h3 class="card__title">Imágenes como data URI</h3>
+            <p class="card__body">Logos y firmas se incrustan como <code>data:image/...;base64</code>. Una URL, incluso una de S3, no se descarga en esa zona.</p>
+          </article>
+          <article class="card">
+            <h3 class="card__title">Tamaño de letra explícito</h3>
+            <p class="card__body">Sin <code>font-size</code> declarado, el texto sale diminuto. Declara siempre el tamaño en cada elemento.</p>
+          </article>
+        </div>
+
+        <div class="callout callout--warning">
+          <div class="callout__icon">▲</div>
+          <div>
+            <p class="callout__title">Dos reglas que se descubrieron al maquetar un pie real</p>
+            <p class="callout__body">
+              <strong>1. Chromium agrega margen y relleno por defecto a esa zona.</strong> Si el diseño debe llegar al borde de la hoja, hay que reiniciarlos; sin eso, un pie de FINTEGRA quedaba a 9 mm del borde.
+              <strong>2. Los fondos CSS (<code>background</code>) no se imprimen ahí.</strong> Las franjas y formas de color se dibujan con SVG, que sí se imprime.
+            </p>
+          </div>
+        </div>
+
+        <div class="sql-box">
+          <div class="sql-box__bar">Blade · resources/views/pdf/shared/footer.blade.php (ejemplo)</div>
+<div class="sql-box__body"><span class="cm">{{-- Reinicio: sin esto el pie no llega al borde de la hoja --}}</span>
+&lt;style&gt;html, body { margin: <span class="val">0</span> !important; padding: <span class="val">0</span> !important; } #footer { padding: <span class="val">0</span> !important; }&lt;/style&gt;
+
+&lt;div style=<span class="val">"position:relative; width:100%; height:25mm; font-family:Arial, sans-serif;"</span>&gt;
+    <span class="cm">{{-- Franjas de color como SVG: los fondos CSS no se imprimen en esta zona --}}</span>
+    &lt;svg viewBox=<span class="val">"0 618 1055 154"</span> preserveAspectRatio=<span class="val">"none"</span> style=<span class="val">"position:absolute; bottom:-7mm; width:100%; height:31.5mm;"</span>&gt;…&lt;/svg&gt;
+
+    &lt;div style=<span class="val">"position:absolute; left:30px; bottom:12px; font-size:8px;"</span>&gt;
+        @isset($company[<span class="val">'nit'</span>]) NIT: {{ $company[<span class="val">'nit'</span>] }} @endisset
+        {{ $company[<span class="val">'web'</span>] ?? <span class="val">''</span> }} · Una solución de Sodeker
+    &lt;/div&gt;
+    &lt;div style=<span class="val">"position:absolute; right:30px; bottom:12px; font-size:8px;"</span>&gt;
+        Página &lt;span class=<span class="val">"pageNumber"</span>&gt;&lt;/span&gt; de &lt;span class=<span class="val">"totalPages"</span>&gt;&lt;/span&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</div>
+        </div>
+      </section>
+
+      <!-- =================== 6. INSTALACIÓN Y CONFIGURACIÓN =================== -->
+      <section id="configuracion" class="section">
+        <header class="section__header">
+          <span class="badge">Instalación y configuración</span>
+          <h2>Qué necesita para <span class="accent">funcionar</span></h2>
+          <p class="lede">El paquete trae el código PHP. Node, puppeteer y Chromium los pone el servidor donde corre PHP: sin ellos, el paquete se instala pero no genera nada.</p>
+        </header>
+
+        <h3>Instalar en una aplicación</h3>
+        <div class="cmd-stack">
+          <div class="cmd-item">
+            <div class="cmd-item__head"><span class="cmd-item__num">1</span><span class="cmd-item__title">Declarar el repositorio privado en composer.json</span></div>
+            <div class="cmd-item__code">"repositories": [
+    {
+        "type": "vcs",
+        "url": <span class="t-arg">"git@github.com:Sodeker-SAS/laravel-pdf.git"</span>,
+        "no-api": true
+    }
+]</div>
+            <div class="cmd-item__foot">Mismo patrón que <strong>doma-composer</strong>: Composer clona por SSH con la llave de cada desarrollador. Si la aplicación ya declara otros repositorios, se agrega uno más al arreglo.</div>
+          </div>
+          <div class="cmd-item">
+            <div class="cmd-item__head"><span class="cmd-item__num">2</span><span class="cmd-item__title">Instalar el paquete</span></div>
+            <div class="cmd-item__code">composer require <span class="t-arg">sodeker/laravel-pdf</span></div>
+            <div class="cmd-item__foot">Trae <strong>spatie/browsershot ^5</strong> como dependencia. Laravel descubre <strong>PdfServiceProvider</strong> solo: no hay que registrarlo en <strong>bootstrap/providers.php</strong>.</div>
+          </div>
+          <div class="cmd-item">
+            <div class="cmd-item__head"><span class="cmd-item__num">3</span><span class="cmd-item__title">Instalar puppeteer</span></div>
+            <div class="cmd-item__code">pnpm add <span class="t-arg">puppeteer</span>
+<span class="t-flag">PUPPETEER_SKIP_DOWNLOAD=true</span>   <span class="t-arg"># si la imagen ya trae Chromium</span></div>
+            <div class="cmd-item__foot">Puppeteer es la pieza de Node que controla Chromium. Si la imagen PHP ya instala Chromium, no hace falta que puppeteer descargue otro navegador.</div>
+          </div>
+          <div class="cmd-item">
+            <div class="cmd-item__head"><span class="cmd-item__num">4</span><span class="cmd-item__title">Hacer visible node_modules para el contenedor php</span></div>
+            <div class="cmd-item__code">php:
+  volumes:
+    - ./:/var/www
+    - <span class="t-arg">node_modules:/var/www/node_modules</span></div>
+            <div class="cmd-item__foot">Browsershot lanza Node <strong>desde el contenedor php</strong>, y ahí tiene que encontrar puppeteer. Si las dependencias solo viven en el volumen del contenedor node, falla con <strong>Cannot find module 'puppeteer'</strong>.</div>
+          </div>
+          <div class="cmd-item">
+            <div class="cmd-item__head"><span class="cmd-item__num">5</span><span class="cmd-item__title">Publicar la configuración (opcional)</span></div>
+            <div class="cmd-item__code">php artisan vendor:publish <span class="t-flag">--tag=pdf-config</span></div>
+            <div class="cmd-item__foot">Solo si la aplicación necesita algo que no se resuelve con variables de entorno. Sin publicar, el paquete usa su propio <strong>config/pdf.php</strong>.</div>
+          </div>
+        </div>
+
+        <h3>Configuración</h3>
+        <p>Todo se lee de <code>config/pdf.php</code>. Las variables de entorno son las mismas que usaba el módulo cuando vivía dentro de FINTEGRA, así que un <code>.env</code> existente sirve sin cambios.</p>
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead><tr><th>Clave</th><th>Variable de entorno</th><th>Por defecto</th><th>Qué es</th></tr></thead>
+            <tbody>
+              <tr><td><code>browsershot.node_path</code></td><td><code>NODE_BINARY</code></td><td><code>/usr/bin/node</code></td><td>Ejecutable de Node que corre puppeteer.</td></tr>
+              <tr><td><code>browsershot.chrome_path</code></td><td><code>CHROME_PATH</code></td><td><code>/usr/bin/chromium</code></td><td>Navegador que imprime el PDF.</td></tr>
+              <tr><td><code>browsershot.node_modules_path</code></td><td><code>BROWSERSHOT_NODE_MODULES_PATH</code></td><td><code>base_path('node_modules')</code></td><td>Carpeta donde puppeteer tiene que ser visible para PHP.</td></tr>
+              <tr><td><code>temporary_directory</code></td><td><code>BROWSERSHOT_TEMPORARY_DIRECTORY</code></td><td><code>storage_path('app/browsershot')</code></td><td>HTML temporal y perfil de Chromium. Debe ser escribible por PHP-FPM.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <div class="callout__icon">●</div>
+          <div>
+            <p class="callout__title">El perfil de Chromium vive en el directorio temporal</p>
+            <p class="callout__body">
+              Chromium guarda su perfil (<code>.config</code>, <code>.cache</code>, <code>.local</code>) en el directorio personal del usuario. Bajo PHP-FPM ese usuario es <code>www-data</code>, cuyo directorio suele ser la raíz del proyecto, y ahí aparecían esas carpetas.
+              El renderer le pasa a Chromium las rutas XDG apuntando a <code>{temporary_directory}/{config,cache,data}</code>.
+              No se usa <code>HOME</code> porque Browsershot le da prioridad al entorno del proceso y lo sobrescribe.
+            </p>
+          </div>
+        </div>
+
+        <h3>Migrar desde el módulo interno</h3>
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead><tr><th>Antes (dentro de la app)</th><th>Ahora (paquete)</th></tr></thead>
+            <tbody>
+              <tr><td><code>App\Shared\Contracts\PdfGeneration\GeneratePdfContract</code></td><td><code>Sodeker\Pdf\Contracts\GeneratePdfContract</code></td></tr>
+              <tr><td><code>App\Modules\PdfGeneration\Domain\Exceptions\…</code></td><td><code>Sodeker\Pdf\Application\Exceptions\…</code> (cambia de capa)</td></tr>
+              <tr><td><code>App\Modules\PdfGeneration\Application\Contracts\…</code></td><td><code>Sodeker\Pdf\Application\Ports\…</code> (cambia de carpeta)</td></tr>
+              <tr><td><code>App\Modules\PdfGeneration\…</code> (el resto)</td><td><code>Sodeker\Pdf\…</code></td></tr>
+              <tr><td><code>PdfGenerationServiceProvider</code> en <code>bootstrap/providers.php</code></td><td>Se quita: <code>PdfServiceProvider</code> se descubre solo</td></tr>
+              <tr><td><code>config/services.php</code> → <code>browsershot</code></td><td>Se puede quitar: el paquete lee las mismas variables desde <code>config/pdf.php</code></td></tr>
+              <tr><td><code>app/Modules/PdfGeneration</code> y <code>app/Shared/Contracts/PdfGeneration</code></td><td>Se borran después de reemplazar los namespaces</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================== 7. PRUEBAS =================== -->
+      <section id="pruebas" class="section">
+        <header class="section__header">
+          <span class="badge">Pruebas</span>
+          <h2>Qué garantizan los <span class="accent">tests</span></h2>
+          <p class="lede">Las pruebas registran tres vistas de juguete bajo el namespace <code>pdf-test</code>, igual que haría una aplicación con sus maquetas, y reemplazan Chromium por un renderer falso.</p>
+        </header>
+
+        <div class="table-wrap">
+          <table class="doc-table">
+            <thead><tr><th>Caso</th><th>Qué protege</th></tr></thead>
+            <tbody>
+              <tr><td>Solo cuerpo</td><td>Sin encabezado ni pie, el renderer recibe <code>null</code> en ambos.</td></tr>
+              <tr><td>Encabezado y pie</td><td>Los tres reciben la misma data.</td></tr>
+              <tr><td>Solo uno de los dos</td><td>Se puede enviar el pie sin encabezado y viceversa.</td></tr>
+              <tr><td>Opciones de página</td><td>Llegan al renderer sin modificarse.</td></tr>
+              <tr><td>Nombre del archivo (3 casos)</td><td>Valor por defecto, extensión agregada y extensión respetada.</td></tr>
+              <tr><td>Vista inexistente (3 casos)</td><td>Cuerpo, encabezado o pie faltante lanza la excepción <strong>sin llamar a Chromium</strong>.</td></tr>
+              <tr><td>Validación antes de renderizar</td><td>Si falta el pie, no se renderiza ni el cuerpo ni el encabezado.</td></tr>
+              <tr><td>Arquitectura (3 reglas)</td><td>Domain no conoce otras capas ni Laravel; Application no conoce Infrastructure, Laravel ni Browsershot; los puertos son interfaces.</td></tr>
+              <tr><td>Sin vistas ni rutas propias</td><td>Evita que alguien vuelva a meter una maqueta o una ruta demo en el paquete.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ejecutar las pruebas del paquete</h3>
+        <div class="terminal">
+          <div class="terminal__bar">
+            <div class="terminal__dots"><span></span><span></span><span></span></div>
+            <span class="terminal__title">sodeker-laravel-pdf</span>
+          </div>
+<div class="terminal__body"><span class="t-cmt"># No necesitan Chromium: usan un renderer falso sobre Orchestra Testbench</span>
+<span class="t-prompt">$</span> <span class="t-cmd">composer install</span>
+<span class="t-prompt">$</span> <span class="t-cmd">vendor/bin/pest</span>
+<span class="t-ok">Tests:    15 passed (42 assertions)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">vendor/bin/pint</span> <span class="t-flag">--test</span></div>
+        </div>
+
+        <h3>Probar la aplicación consumidora sin Chromium</h3>
+        <p>Como los dos puertos se registran con <code>bindIf</code>, una prueba de la aplicación puede reemplazarlo por uno falso y revisar el HTML que recibió:</p>
+        <div class="sql-box">
+          <div class="sql-box__bar">PHP · prueba de la aplicación</div>
+<div class="sql-box__body"><span class="kw">use</span> <span class="tbl">Sodeker\Pdf\Application\Ports\HtmlToPdfRenderer</span>;
+
+$this-&gt;app-&gt;instance(<span class="tbl">HtmlToPdfRenderer</span>::<span class="kw">class</span>, <span class="kw">new</span> <span class="tbl">MiRendererFalso</span>);</div>
+        </div>
+      </section>
+
+      <!-- =================== 8. MARCA DE AGUA Y PIE =================== -->
+      <section id="marca-agua-pie" class="section">
+        <header class="section__header">
+          <span class="badge">Por dentro</span>
+          <h2>Marca de agua y pie: dos mecanismos <span class="accent">distintos</span></h2>
+          <p class="lede">Los dos se repiten en cada página, pero por caminos diferentes. Entenderlo evita pasarle al paquete algo que no necesita y viceversa.</p>
+        </header>
+
+        <figure class="figure">
+          <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" role="img" aria-label="Cómo se repiten la marca de agua y el pie en cada página">
+            <defs>
+              <marker id="layers-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+              </marker>
+            </defs>
+            <g font-family="Inter, sans-serif" fill="#1F2937">
+              <rect x="20" y="20" width="200" height="300" rx="8" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="120" y="45" text-anchor="middle" font-size="12" font-weight="600">Página 1</text>
+              <rect x="40" y="130" width="160" height="60" rx="30" fill="#E6F4F6" stroke="#C8E9EC"/>
+              <text x="120" y="165" text-anchor="middle" font-size="11">marca de agua</text>
+              <rect x="20" y="270" width="200" height="50" rx="8" fill="#E6F4F6" stroke="#0097A7"/>
+              <text x="120" y="300" text-anchor="middle" font-size="11">pie · Página 1 de 2</text>
+
+              <rect x="260" y="20" width="200" height="300" rx="8" fill="#FFFFFF" stroke="#E5E7EB"/>
+              <text x="360" y="45" text-anchor="middle" font-size="12" font-weight="600">Página 2</text>
+              <rect x="280" y="130" width="160" height="60" rx="30" fill="#E6F4F6" stroke="#C8E9EC"/>
+              <text x="360" y="165" text-anchor="middle" font-size="11">marca de agua</text>
+              <rect x="260" y="270" width="200" height="50" rx="8" fill="#E6F4F6" stroke="#0097A7"/>
+              <text x="360" y="300" text-anchor="middle" font-size="11">pie · Página 2 de 2</text>
+
+              <text x="500" y="100" font-size="12" font-weight="600">Marca de agua</text>
+              <text x="500" y="118" font-size="11">está una vez en el HTML;</text>
+              <text x="500" y="134" font-size="11">position: fixed hace que</text>
+              <text x="500" y="150" font-size="11">Chromium la repita</text>
+
+              <text x="500" y="250" font-size="12" font-weight="600">Pie</text>
+              <text x="500" y="268" font-size="11">plantilla aparte; Chromium</text>
+              <text x="500" y="284" font-size="11">la imprime en cada margen</text>
+              <text x="500" y="300" font-size="11">y llena pageNumber</text>
+            </g>
+            <g stroke="#9CA3AF" stroke-width="1.5" fill="none" marker-end="url(#layers-arrow)">
+              <path d="M495,125 C470,125 455,150 442,158"/>
+              <path d="M495,280 C478,280 470,292 462,294"/>
+            </g>
+          </svg>
+          <figcaption class="figure__caption">
+            <span class="figure__label">DIAGRAMA 3</span>
+            Ninguna de las dos se "vuelve a pintar" desde PHP por cada hoja. Se declaran una sola vez y Chromium las repite al paginar.
+          </figcaption>
+        </figure>
+
+        <div class="card-grid">
+          <article class="card card--accent-left">
+            <h3 class="card__title">Marca de agua: HTML del cuerpo con position: fixed</h3>
+            <p class="card__body">Un parcial de la aplicación (por ejemplo <code>pdf.shared.watermark</code>) se incluye una vez en el cuerpo. Al imprimir, Chromium dibuja los elementos con <code>position: fixed</code> en <strong>todas las páginas</strong>, en la misma posición. <code>z-index: 10</code> la pone encima de las tarjetas y <code>opacity: .05</code> la deja tenue. El texto de debajo sigue siendo seleccionable. No es parámetro del paquete porque no necesita ningún trato especial de Chromium.</p>
+          </article>
+          <article class="card card--accent-left">
+            <h3 class="card__title">Pie: plantilla que Chromium imprime en el margen</h3>
+            <p class="card__body">El paquete le pasa el HTML del pie a Browsershot (<code>footerHtml</code> con <code>displayHeaderFooter</code>). Browsershot se lo entrega a Chromium, y <strong>Chromium</strong> lo imprime dentro del margen inferior de cada hoja. Al hacerlo, reemplaza el contenido de <code>&lt;span class="pageNumber"&gt;</code> y <code>&lt;span class="totalPages"&gt;</code> por los números reales. Por eso el pie sí es parámetro del paquete: es la única forma de numerar páginas.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- =================== 9. SOPORTE =================== -->
+      <section id="soporte" class="section">
+        <header class="section__header">
+          <span class="badge">Soporte</span>
+          <h2>Cuando un PDF <span class="accent">no sale bien</span></h2>
+          <p class="lede">Los problemas más probables, explicados sin jerga: qué se ve, por qué pasa y qué hacer.</p>
+        </header>
+
+        <div class="issue">
+          <div class="issue__head">"La plantilla blade [...] no existe"</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>El sistema no encontró el diseño del documento, del encabezado o del pie. El mensaje dice cuál.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>El nombre de la vista está mal escrito, o el archivo se movió o se borró.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>Pasar el nombre exacto al desarrollador. Es un error de código, no de datos: no se arregla reintentando.</span></div>
+        </div>
+
+        <div class="issue">
+          <div class="issue__head">"No fue posible generar el PDF: ..."</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>El diseño estaba bien, pero el programa que "imprime" el PDF (Chromium) no pudo arrancar o no terminó a tiempo.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>Lo más común: puppeteer no está instalado o PHP no lo encuentra (<code>Cannot find module 'puppeteer'</code>), la ruta de Chromium es incorrecta, o el documento tardó más de 60 segundos.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>Revisar el log de Laravel buscando "Error al generar PDF con Browsershot": ahí está el motivo real. Si el mensaje menciona puppeteer, revisar la sección de configuración.</span></div>
+        </div>
+
+        <div class="issue">
+          <div class="issue__head">El pie o el encabezado salen diminutos, cortados o no aparecen</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>El documento se generó, pero las franjas de arriba o de abajo se ven mal.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>El margen es más pequeño que la franja, falta el tamaño de letra, o el diseño usa estilos o imágenes externas que esa zona no carga.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>Aumentar el margen correspondiente y revisar las tres reglas de la sección "Encabezado y pie".</span></div>
+        </div>
+
+        <div class="issue">
+          <div class="issue__head">Un logo o una firma no se ven</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>El PDF sale, pero con el espacio de la imagen vacío.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>La imagen se referenció como URL. Chromium no tiene la sesión del usuario ni permiso para leer archivos privados, por ejemplo en S3.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>La aplicación tiene que incrustar la imagen como data URI antes de llamar a <code>generate()</code>.</span></div>
+        </div>
+      
+
+        <div class="issue">
+          <div class="issue__head">Aparecen carpetas .cache, .config o .local en la raíz del proyecto</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>Después de generar un PDF desde el navegador aparecen carpetas nuevas sin seguimiento en git.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>Es el perfil de Chromium. El paquete lo envía al directorio temporal (<code>BROWSERSHOT_TEMPORARY_DIRECTORY</code>, por defecto <code>storage/app/browsershot</code>). Si vuelve a pasar, esa ruta no es escribible o se está usando una versión vieja del módulo.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>Borrar esas carpetas (se regeneran solas en su lugar correcto) y revisar que el directorio temporal exista y PHP pueda escribir en él. Una carpeta <code>.config/psysh</code> es distinta: es el historial de tinker.</span></div>
+        </div>
+
+        <div class="issue">
+          <div class="issue__head">"Host key verification failed" al ejecutar composer</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>Composer no puede descargar el paquete privado de Sodeker desde GitHub.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>El contenedor no reconoce a GitHub. Pasa si la imagen php no tiene la huella de GitHub en <code>known_hosts</code>.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>Agregar la huella con <code>ssh-keyscan -t ed25519 github.com</code> en el Dockerfile, reconstruir la imagen y recrear el contenedor. Si el error dice "Permission denied", el problema es la llave personal: revisar <code>ssh-add -l</code> en el computador.</span></div>
+        </div>
+
+        <div class="issue">
+          <div class="issue__head">"Class App\Shared\Contracts\PdfGeneration\GeneratePdfContract not found"</div>
+          <div class="issue__row"><span class="issue__label">Qué pasó</span><span>Después de instalar el paquete, una pantalla que genera PDF deja de funcionar.</span></div>
+          <div class="issue__row"><span class="issue__label">Por qué</span><span>Se borró el módulo viejo de la aplicación, pero algún archivo sigue pidiendo el contrato con su dirección antigua.</span></div>
+          <div class="issue__row"><span class="issue__label">Qué hacer</span><span>Buscar <code>App\Shared\Contracts\PdfGeneration</code> y <code>App\Modules\PdfGeneration</code> en el código y reemplazarlos por <code>Sodeker\Pdf\…</code> (ver "Migrar desde el módulo interno").</span></div>
+        </div>
+      </section>
+
+    </main>
+
+    <nav class="doc-nav" aria-label="Navegación de la documentación">
+      <p class="doc-nav__label">Contenido</p>
+      <ul class="doc-nav__list">
+        <li><a href="#arquitectura">Arquitectura</a></li>
+        <li><a href="#flujo">Flujo de generate()</a></li>
+        <li><a href="#uso">Uso</a></li>
+        <li><a href="#encabezado-pie">Encabezado y pie</a></li>
+        <li><a href="#configuracion">Configuración</a></li>
+        <li><a href="#pruebas">Pruebas</a></li>
+        <li><a href="#marca-agua-pie">Marca de agua y pie</a></li>
+        <li><a href="#soporte">Soporte</a></li>
+      </ul>
+    </nav>
+
+  </div>
+
+  <script>
+    (function () {
+      const btn = document.querySelector('.theme-toggle');
+      if (!btn) return;
+      const root = document.documentElement;
+      btn.setAttribute('aria-pressed', root.getAttribute('data-theme') === 'dark');
+      btn.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        btn.setAttribute('aria-pressed', next === 'dark');
+        try { localStorage.setItem('sodeker-docs-theme', next); } catch (e) {}
+      });
+    })();
+
+    (function () {
+      const links = document.querySelectorAll('.doc-nav__list a[href^="#"]');
+      const targets = Array.from(links)
+        .map(a => document.querySelector(a.getAttribute('href')))
+        .filter(Boolean);
+      if (!targets.length) return;
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const id = '#' + e.target.id;
+            links.forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === id));
+          }
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      targets.forEach(t => obs.observe(t));
+    })();
+  </script>
+</body>
+</html>
